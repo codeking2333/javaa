@@ -17,7 +17,7 @@ public class MainFrame extends JFrame {
 
     public void initMenus() {
         JMenuBar mainMenu = new JMenuBar();
-        JMenu fileMenu = new JMenu("文件");
+        JMenu scoreMenu = new JMenu("成绩");
         JMenuItem changeClassMenuItem = new JMenuItem("切换当前班");
         JMenuItem exportScoreMenuItem = new JMenuItem("导出当前班成绩");
         JMenuItem exitMenuItem = new JMenuItem("退出");
@@ -39,14 +39,14 @@ public class MainFrame extends JFrame {
         JMenuItem randomStudentMenuItem = new JMenuItem("随机学生");
 
         this.getContentPane().add(mainMenu, BorderLayout.NORTH);
-        mainMenu.add(fileMenu);
+        mainMenu.add(scoreMenu);
         mainMenu.add(classMenu);
         mainMenu.add(groupMenu);
         mainMenu.add(studentMenu);
         mainMenu.add(onClassMenu);
-        fileMenu.add(changeClassMenuItem);
-        fileMenu.add(exportScoreMenuItem);
-        fileMenu.add(exitMenuItem);
+        scoreMenu.add(changeClassMenuItem);
+        scoreMenu.add(exportScoreMenuItem);
+        scoreMenu.add(exitMenuItem);
         classMenu.add(addClassMenuItem);
         classMenu.add(classListMenuItem);
         groupMenu.add(addGroupMenuItem);
@@ -55,7 +55,7 @@ public class MainFrame extends JFrame {
         studentMenu.add(studentListMenuItem);
         onClassMenu.add(randomGroupMenuItem);
         onClassMenu.add(randomStudentMenuItem);
-        // 添加菜单事件
+
         // 切换班级
         changeClassMenuItem.addActionListener(e -> {
             this.getContentPane().removeAll();
@@ -64,17 +64,24 @@ public class MainFrame extends JFrame {
             this.getContentPane().add(changeClassPanel, BorderLayout.CENTER);
             this.getContentPane().validate();
         });
+
         // 导出成绩
         exportScoreMenuItem.addActionListener(e -> {
             if (Constant.CLASS_PATH.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "请先选择班级", "", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                // TODO 导出
-                JOptionPane.showMessageDialog(this, "成绩已导出", "", JOptionPane.INFORMATION_MESSAGE);
+                this.getContentPane().removeAll();
+                initMenus();
+                ScoreListPanel scoreListPanel = new ScoreListPanel(Constant.CLASS_PATH);
+                this.getContentPane().add(scoreListPanel, BorderLayout.CENTER);
+                this.getContentPane().validate();
+                this.getContentPane().repaint();
             }
         });
+
         // 退出程序
         exitMenuItem.addActionListener(e -> System.exit(0));
+
         // 新增班级
         addClassMenuItem.addActionListener(e -> {
             this.getContentPane().removeAll();
@@ -83,6 +90,7 @@ public class MainFrame extends JFrame {
             this.getContentPane().add(classAddPanel, BorderLayout.CENTER);
             this.getContentPane().validate();
         });
+
         // 班级列表
         classListMenuItem.addActionListener(e -> {
             this.getContentPane().removeAll();
@@ -91,10 +99,11 @@ public class MainFrame extends JFrame {
             this.getContentPane().add(classListPanel, BorderLayout.CENTER);
             this.getContentPane().validate();
         });
+
         // 新增小组
         addGroupMenuItem.addActionListener(e -> {
             if (Constant.CLASS_PATH == null || Constant.CLASS_PATH.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "请先在【文件】菜单中选择班级", "", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "请先在【成绩】菜单中选择班级", "", JOptionPane.WARNING_MESSAGE);
                 this.getContentPane().removeAll();
                 initMenus();
                 ChangeClassPanel changeClassPanel = new ChangeClassPanel(this, "GroupAdd");
@@ -108,6 +117,7 @@ public class MainFrame extends JFrame {
                 this.getContentPane().validate();
             }
         });
+
         // 小组列表
         groupListMenuItem.addActionListener(e -> {
             this.getContentPane().removeAll();
@@ -116,10 +126,11 @@ public class MainFrame extends JFrame {
             this.getContentPane().repaint();
             this.getContentPane().validate();
         });
+
         // 新增学生
         addStudentMenuItem.addActionListener(e -> {
             if (Constant.CLASS_PATH == null || Constant.CLASS_PATH.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "请先在【文件】菜单中选择班级", "", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "请先在【成绩】菜单中选择班级", "", JOptionPane.WARNING_MESSAGE);
                 this.getContentPane().removeAll();
                 initMenus();
                 ChangeClassPanel changeClassPanel = new ChangeClassPanel(this, "StudentAdd");
@@ -133,6 +144,7 @@ public class MainFrame extends JFrame {
                 this.getContentPane().validate();
             }
         });
+
         // 学生列表
         studentListMenuItem.addActionListener(e -> {
             this.getContentPane().removeAll();
@@ -141,6 +153,7 @@ public class MainFrame extends JFrame {
             this.getContentPane().repaint();
             this.getContentPane().validate();
         });
+
         // 随机抽取小组
         randomGroupMenuItem.addActionListener(e -> {
             this.getContentPane().removeAll();
@@ -149,6 +162,7 @@ public class MainFrame extends JFrame {
             this.getContentPane().repaint();
             this.getContentPane().validate();
         });
+
         // 随机抽取学生
         randomStudentMenuItem.addActionListener(e -> {
             this.getContentPane().removeAll();
