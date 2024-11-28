@@ -5,26 +5,31 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
 public class RandomStudentPanel extends JPanel {
-    private JLabel lbl2 = new JLabel("学生姓名：");
-    private JLabel lbl3 = new JLabel("学生照片：");
-    private JLabel lblPic = new JLabel("照片");
-    private JTextField txtStudent = new JTextField();
-    private JButton btnChooseStudent = new JButton("随机学生");
-    private JButton btnAbsence = new JButton("缺勤");
-    private JButton btnLeave = new JButton("请假");
-    private JButton btnAnswer = new JButton("答题");
-    private JComboBox<String> classComboBox;
-    private JComboBox<String> groupComboBox;
-    Thread threadStudent = null;   // 随机抽取学生的线程
-    private List<String> studentList = new ArrayList<>();  // 存储当前可选的学生列表
-    private Random random = new Random();
+    private static final long serialVersionUID = 1L;
+    private final JLabel lbl2 = new JLabel("学生姓名：");
+    private final JLabel lbl3 = new JLabel("学生照片：");
+    private final JLabel lblPic = new JLabel("照片");
+    private final JTextField txtStudent = new JTextField();
+    private final JButton btnChooseStudent = new JButton("随机学生");
+    private final JButton btnAbsence = new JButton("缺勤");
+    private final JButton btnLeave = new JButton("请假");
+    private final JButton btnAnswer = new JButton("答题");
+    private final JButton btnCorrect = new JButton("回答正确");
+    private final JLabel lblScore = new JLabel("当前成绩：0");
+    private final JComboBox<String> classComboBox;
+    private final JComboBox<String> groupComboBox;
+    private Thread threadStudent = null;   // 随机抽取学生的线程
+    private final List<String> studentList = new ArrayList<>();  // 存储当前可选的学生列表
+    private final Random random = new Random();
 
     public RandomStudentPanel() {
         this.setBorder(new TitledBorder(new EtchedBorder(), "随机学生点名"));
@@ -53,6 +58,8 @@ public class RandomStudentPanel extends JPanel {
         this.add(btnAbsence);
         this.add(btnLeave);
         this.add(btnAnswer);
+        this.add(btnCorrect);
+        this.add(lblScore);
 
         // 设置组件位置
         lblClass.setBounds(50, 30, 100, 30);
@@ -68,6 +75,8 @@ public class RandomStudentPanel extends JPanel {
         btnAbsence.setBounds(160, 380, 60, 30);
         btnLeave.setBounds(230, 380, 60, 30);
         btnAnswer.setBounds(300, 380, 60, 30);
+        btnCorrect.setBounds(370, 380, 90, 30);
+        lblScore.setBounds(160, 420, 200, 30);
 
         // 班级选择事件
         classComboBox.addActionListener(e -> {
@@ -97,7 +106,7 @@ public class RandomStudentPanel extends JPanel {
             }
         });
 
-        // 初始��载所有学生
+        // 初始载所有学生
         loadAllStudents();
 
         // 随机学生按钮事件
@@ -113,6 +122,20 @@ public class RandomStudentPanel extends JPanel {
                     threadStudent = null;
                 }
                 btnChooseStudent.setText("随机学生");
+                
+                // 更新选中学生的分数显示
+                String selectedClass = (String) classComboBox.getSelectedItem();
+                String studentName = txtStudent.getText().trim();
+                
+                if ("全部班级".equals(selectedClass)) {
+                    String[] parts = studentName.split("-");
+                    if (parts.length >= 2) {
+                        selectedClass = parts[0];
+                        studentName = parts[1];
+                    }
+                }
+                
+                updateScoreDisplay(selectedClass, studentName);
             } else {
                 btnChooseStudent.setText("停");
                 threadStudent = new Thread(() -> {
@@ -130,7 +153,7 @@ public class RandomStudentPanel extends JPanel {
             }
         });
 
-        // 缺勤按���事件
+        // 缺勤按钮事件
         btnAbsence.addActionListener(e -> {
             if (txtStudent.getText() == null || txtStudent.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "请先随机选择学生", "", JOptionPane.INFORMATION_MESSAGE);
@@ -168,7 +191,9 @@ public class RandomStudentPanel extends JPanel {
                     writer.println(String.join(",", selectedClass, studentName, "absence", date));
                 }
 
-                JOptionPane.showMessageDialog(this, "已记录缺勤", "", JOptionPane.INFORMATION_MESSAGE);
+                // 扣分
+                updateScore(selectedClass, studentName, -3);
+                JOptionPane.showMessageDialog(this, "已记录缺勤并扣3分", "", JOptionPane.INFORMATION_MESSAGE);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, 
                     "记录缺勤失败：" + ex.getMessage(), 
@@ -187,7 +212,6 @@ public class RandomStudentPanel extends JPanel {
             String selectedClass = (String) classComboBox.getSelectedItem();
             String studentName = txtStudent.getText().trim();
             
-            // 如果是从"全部班���"中选择的学生，需要解析班级名
             if ("全部班级".equals(selectedClass)) {
                 String[] parts = studentName.split("-");
                 if (parts.length >= 2) {
@@ -209,19 +233,44 @@ public class RandomStudentPanel extends JPanel {
                     parentDir.mkdirs();
                 }
 
-                // 追加写入文件，格式：班级,学生姓名,类型(absence/leave),日期
+                // 追加写入文件
                 try (PrintWriter writer = new PrintWriter(new FileWriter(attendanceFile, true))) {
                     String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
                     writer.println(String.join(",", selectedClass, studentName, "leave", date));
                 }
 
-                JOptionPane.showMessageDialog(this, "已记录请假", "", JOptionPane.INFORMATION_MESSAGE);
+                // 扣分
+                updateScore(selectedClass, studentName, -3);
+                JOptionPane.showMessageDialog(this, "已记录请假并扣3分", "", JOptionPane.INFORMATION_MESSAGE);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, 
                     "记录请假失败：" + ex.getMessage(), 
                     "错误", 
                     JOptionPane.ERROR_MESSAGE);
             }
+        });
+
+        // 回答正确按钮事件
+        btnCorrect.addActionListener(e -> {
+            if (txtStudent.getText() == null || txtStudent.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "请先随机选择学生", "", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            String selectedClass = (String) classComboBox.getSelectedItem();
+            String studentName = txtStudent.getText().trim();
+            
+            if ("全部班级".equals(selectedClass)) {
+                String[] parts = studentName.split("-");
+                if (parts.length >= 2) {
+                    selectedClass = parts[0];
+                    studentName = parts[1];
+                }
+            }
+
+            // 加分
+            updateScore(selectedClass, studentName, 5);
+            JOptionPane.showMessageDialog(this, "已记录回答正确，加5分", "", JOptionPane.INFORMATION_MESSAGE);
         });
     }
 
@@ -304,5 +353,81 @@ public class RandomStudentPanel extends JPanel {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void updateScore(String className, String studentName, int scoreChange) {
+        File scoreFile = new File("D:" + File.separator + "workspacemax" 
+            + File.separator + "java" 
+            + File.separator + "student" 
+            + File.separator + "score.txt");
+        
+        Map<String, Integer> scores = new HashMap<>();
+        
+        // 读取现有成绩
+        if (scoreFile.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(scoreFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    if (parts.length >= 3) {
+                        scores.put(parts[0] + "," + parts[1], Integer.parseInt(parts[2]));
+                    }
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        
+        // 更新成绩
+        String key = className + "," + studentName;
+        int currentScore = scores.getOrDefault(key, 0);
+        int newScore = currentScore + scoreChange;
+        scores.put(key, newScore);
+        
+        // 保存成绩
+        try {
+            if (!scoreFile.getParentFile().exists()) {
+                scoreFile.getParentFile().mkdirs();
+            }
+            
+            try (PrintWriter writer = new PrintWriter(new FileWriter(scoreFile))) {
+                for (Map.Entry<String, Integer> entry : scores.entrySet()) {
+                    String[] parts = entry.getKey().split(",");
+                    writer.println(parts[0] + "," + parts[1] + "," + entry.getValue());
+                }
+            }
+            
+            // 更新显示的成绩
+            lblScore.setText("当前成绩：" + newScore);
+            
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, 
+                "更新成绩失败：" + ex.getMessage(), 
+                "错误", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void updateScoreDisplay(String className, String studentName) {
+        File scoreFile = new File("D:" + File.separator + "workspacemax" 
+            + File.separator + "java" 
+            + File.separator + "student" 
+            + File.separator + "score.txt");
+        
+        if (scoreFile.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(scoreFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    if (parts.length >= 3 && parts[0].equals(className) && parts[1].equals(studentName)) {
+                        lblScore.setText("当前成绩：" + parts[2]);
+                        return;
+                    }
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        lblScore.setText("当前成绩：0");
     }
 }
