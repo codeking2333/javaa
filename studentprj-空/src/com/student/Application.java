@@ -13,7 +13,7 @@ public class Application {
                 System.err.println("无法创建基础目录：" + Constant.FILE_PATH);
             }//aa
         }
-        //122
+        //12/.3
         // 启动主窗口
         new MainFrame();
     }
