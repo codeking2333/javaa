@@ -12,7 +12,7 @@ public class Application {
             if (!baseDir.mkdirs()) {
                 System.err.println("无法创建基础目录：" + Constant.FILE_PATH);
                 System.err.println("无法创建基础目录：" + Constant.FILE_PATH);
-            }//aa
+            }
         }
         //12/.3
         // 启动主窗口
